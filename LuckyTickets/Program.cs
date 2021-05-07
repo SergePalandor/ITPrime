@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -72,7 +73,7 @@ namespace LuckyTickets
 		/// <param name="checkingRanks">Количество проверяемых 'разрядов' (цифр) слева и справа.</param>
 		/// <param name="useLog">Использовать ли вывод в консоль для логов.</param>
 		/// <returns>Результат решения задачи.</returns>
-		private static long GetLuckyTicketsCount(IReadOnlyList<char> usingDigits, byte digitsCount, byte checkingRanks, bool useLog)
+		private static BigInteger GetLuckyTicketsCount(IReadOnlyList<char> usingDigits, byte digitsCount, byte checkingRanks, bool useLog)
 		{
 			var numberBase = usingDigits.Count;
 
@@ -124,13 +125,12 @@ namespace LuckyTickets
 			maxNumberX.IncrementAbs(); // чтобы последняя проверка с самим макс. числом тоже прошла
 			while (numberX.ToString() != maxNumberX.ToString())
 			{
-				//var numberX = new NumberX(number10, usingDigits);
 				var digitsSum = numberX.GetDigitsSum();
 				sums[digitsSum]++;
 				numberX.IncrementAbs();
 			}
 
-			long result = 0;
+			var result = new BigInteger(0);
 
 			if (useLog)
 				Console.WriteLine("Сосчитали количество сочетаний цифр для каждой из сумм цифр:");
@@ -138,7 +138,7 @@ namespace LuckyTickets
 			for (var sum = 0; sum < differentSumsCount; sum++)
 			{
 				var variantsCount = sums[sum];
-				result += variantsCount * variantsCount;
+				result += new BigInteger(variantsCount) * new BigInteger(variantsCount);
 
 				if (useLog)
 					Console.WriteLine($"- {sum}: {variantsCount}");
@@ -149,7 +149,7 @@ namespace LuckyTickets
 
 			if (notCheckingMultiplier != 1)
 			{
-				result *= notCheckingMultiplier;
+				result *= new BigInteger(notCheckingMultiplier);
 				if (useLog)
 					Console.WriteLine($"Множитель дополнительной оптимизации, описанной выше: {notCheckingMultiplier}.");
 			}
@@ -217,9 +217,8 @@ namespace LuckyTickets
 				test(usingDigits: new List<char>() { '0', '1', '2' }, digitsCount: 7, checkingRanks: 3) &&
 				test(usingDigits: new List<char>() { '0', '1', '2' }, digitsCount: 9, checkingRanks: 4) &&
 				test(usingDigits: new List<char>() { '0', '1', '2' }, digitsCount: 13, checkingRanks: 6) &&
-				test(usingDigits: Number13.Digits, digitsCount: 5, checkingRanks: 2) &&
-				test(usingDigits: Number13.Digits, digitsCount: 7, checkingRanks: 3) &&
-				test(usingDigits: Number13.Digits, digitsCount: 9, checkingRanks: 4);
+				test(usingDigits: Number13.Digits, digitsCount: 5, checkingRanks: 2);// &&
+				//test(usingDigits: Number13.Digits, digitsCount: 7, checkingRanks: 3);
 		}
 
 		/// <summary>
@@ -231,12 +230,12 @@ namespace LuckyTickets
 		/// <param name="checkingRanks">Количество проверяемых 'разрядов' (цифр) слева и справа.</param>
 		/// <param name="useLog">Использовать ли вывод в консоль для логов.</param>
 		/// <returns>Результат решения задачи.</returns>
-		private static long TestSingleThreadGetLuckyTicketsCount(IReadOnlyList<char> usingDigits, int digitsCount, byte checkingRanks, bool useLog)
+		private static BigInteger TestSingleThreadGetLuckyTicketsCount(IReadOnlyList<char> usingDigits, int digitsCount, byte checkingRanks, bool useLog)
 		{
 			if (useLog)
 				Console.WriteLine($"Тестируем однопоточным перебором с параметрами ({usingDigits.Count}, {digitsCount}, {checkingRanks})...");
 
-			var luckyTicketCount = 0;
+			var luckyTicketCount = new BigInteger(0);
 
 			var numberX = new NumberX(0, usingDigits);
 			var maxNumberX = new NumberX(new string(usingDigits[usingDigits.Count - 1], digitsCount), usingDigits);
@@ -260,7 +259,6 @@ namespace LuckyTickets
 			if (useLog)
 			{
 				Console.WriteLine($"[Тестовый однопоточный перебор] Результат: {luckyTicketCount}");
-				//Console.WriteLine();
 			}
 
 			return luckyTicketCount;
@@ -275,7 +273,7 @@ namespace LuckyTickets
 		/// <param name="checkingRanks">Количество проверяемых 'разрядов' (цифр) слева и справа.</param>
 		/// <param name="useLog">Использовать ли вывод в консоль для логов.</param>
 		/// <returns>Результат решения задачи.</returns>
-		private static long TestMultiThreadGetLuckyTicketsCount(IReadOnlyList<char> usingDigits, int digitsCount, byte checkingRanks, bool useLog)
+		private static BigInteger TestMultiThreadGetLuckyTicketsCount(IReadOnlyList<char> usingDigits, int digitsCount, byte checkingRanks, bool useLog)
 		{
 			if (useLog)
 				Console.WriteLine($"Тестируем многопоточным перебором с параметрами ({usingDigits.Count}, {digitsCount}, {checkingRanks})...");
@@ -285,7 +283,8 @@ namespace LuckyTickets
 			if (maxNumberNotIncl < 0)
 				throw new Exception();
 
-			var luckyTicketCount = 0;
+			var luckyTicketCount = new BigInteger(0);
+			var resultLocker = new object();
 
 			var task = Parallel.For(minNumberIncl, maxNumberNotIncl, base10Number =>
 			{
@@ -298,7 +297,10 @@ namespace LuckyTickets
 
 				if (delta == 0)
 				{
-					Interlocked.Increment(ref luckyTicketCount);
+					lock (resultLocker)
+					{
+						luckyTicketCount++;
+					}
 				}
 			});
 

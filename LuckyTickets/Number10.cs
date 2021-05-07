@@ -5,7 +5,7 @@ namespace LuckyTickets
 	/// <summary>
 	/// Класс, позволяющий работать с числами в различных системах счисления.
 	/// </summary>
-	public sealed class Number13 : NumberX
+	public sealed class Number10 : NumberX
 	{
 		/// <summary>
 		/// Цифры, используемые в заданной системе счисления.
@@ -15,13 +15,13 @@ namespace LuckyTickets
 		/// но задавая их вручную мы можем написать любую свою систему счисления, использующую 
 		/// любые символы для записи цифр.
 		/// </remarks>
-		public static readonly IReadOnlyList<char> Digits = new List<char>() { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C' };
+		public static readonly IReadOnlyList<char> Digits = new List<char>() { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 		/// <summary>
 		/// Конструктор.
 		/// </summary>
 		/// <param name="number">Число в десятичной системе счисления.</param>
-		public Number13(long number) : base(number, Digits)
+		public Number10(long number) : base(number, Digits)
 		{
 		}
 
@@ -29,7 +29,7 @@ namespace LuckyTickets
 		/// Конструктор.
 		/// </summary>
 		/// <param name="value">Число в 13-ричной системе счисления.</param>
-		public Number13(string value) : base(value, Digits)
+		public Number10(string value) : base(value, Digits)
 		{
 		}
 	}
